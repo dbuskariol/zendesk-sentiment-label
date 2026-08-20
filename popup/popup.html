@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Zendesk Sentiment Label</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="eyebrow">ZENDESK</span>
+        <h1>Sentiment label</h1>
+        <p>Keep ticket-header sentiment controls consistent.</p>
+      </header>
+
+      <section class="toggle-card">
+        <div>
+          <strong>All Zendesk sites</strong>
+          <p id="scope-description">Enabled by default.</p>
+        </div>
+        <label class="switch">
+          <input id="enable-all" type="checkbox" aria-label="Enable on all Zendesk sites" />
+          <span></span>
+        </label>
+      </section>
+
+      <details>
+        <summary>Manage sites</summary>
+        <div class="details-content">
+          <p class="help">Add a Zendesk subdomain, or exclude one from the default.</p>
+          <div class="segmented" role="group" aria-label="Site action">
+            <button type="button" data-action="enable" class="selected">Enable</button>
+            <button type="button" data-action="disable">Exclude</button>
+          </div>
+          <div class="entry-row">
+            <input
+              id="instance-host"
+              type="text"
+              inputmode="url"
+              placeholder="acme.zendesk.com"
+              autocomplete="off"
+            />
+            <button id="save-host" type="button">Add</button>
+          </div>
+          <p id="form-message" class="message" role="status" aria-live="polite"></p>
+
+          <div class="list-section">
+            <h2>Enabled sites</h2>
+            <ul id="enabled-hosts" class="host-list"></ul>
+          </div>
+          <div class="list-section">
+            <h2>Excluded sites</h2>
+            <ul id="disabled-hosts" class="host-list"></ul>
+          </div>
+        </div>
+      </details>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -8,8 +8,10 @@ the trigger label as **Sentiment**. It targets the stable Zendesk selector
 `button[data-test-id="sentiment-menu-dropdown-button"]` and does not modify
 other ticket-header controls.
 
-The content script uses a scoped `MutationObserver` plus SPA-navigation hooks
-to reapply the presentation after Zendesk rerenders the ticket header.
+The content script uses Zendesk's stable sentiment trigger and divider
+`data-test-id` attributes, with a trigger-relative fallback for markup changes.
+A scoped `MutationObserver` and SPA-navigation hooks reapply the presentation
+after Zendesk rerenders the ticket header.
 
 ## Install unpacked in Chrome
 
@@ -19,19 +21,18 @@ to reapply the presentation after Zendesk rerenders the ticket header.
 3. Enable **Developer mode**.
 4. Click **Load unpacked** and choose the repository folder containing
    `manifest.json`.
-5. Open **Details** for the extension, then select **Extension options** to
-   manage Zendesk instances.
+5. Pin the extension, then click its toolbar icon to manage Zendesk instances.
 
 When updating the extension files, use the reload button in
 `chrome://extensions`, then refresh the Zendesk tab.
 
-## Options
+## Toolbar popup
 
 All Zendesk instances are enabled by default through the
 `https://*.zendesk.com/*` content-script match.
 
 - To exclude one tenant while the default is active, enter its subdomain (for
-  example, `acme.zendesk.com`), select **Remove**, and save.
+  example, `acme.zendesk.com`), choose **Exclude**, and add it.
 - To use an allowlist instead, turn off **Enable on all Zendesk instances** and
   add each tenant with **Enable**.
 - Adding a tenant to one list removes it from the opposing list.
@@ -54,7 +55,7 @@ This extension has no build step or dependencies. Validate its source with:
 
 ```sh
 node --check content/sentiment-label.js
-node --check options/options.js
+node --check popup/popup.js
 python3 -c "import json; json.load(open('manifest.json'))"
 ```
 

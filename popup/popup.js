@@ -10,14 +10,16 @@
     /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)zendesk\.com$/i;
 
   const enableAll = document.getElementById("enable-all");
-  const form = document.getElementById("instance-form");
+  const scopeDescription = document.getElementById("scope-description");
   const hostInput = document.getElementById("instance-host");
-  const actionInput = document.getElementById("instance-action");
+  const saveHost = document.getElementById("save-host");
   const message = document.getElementById("form-message");
   const enabledList = document.getElementById("enabled-hosts");
   const disabledList = document.getElementById("disabled-hosts");
+  const actionButtons = [...document.querySelectorAll("[data-action]")];
 
   let settings = { ...DEFAULT_SETTINGS };
+  let selectedAction = "enable";
 
   function uniqueHosts(hosts) {
     return Array.from(
@@ -44,7 +46,6 @@
 
   function renderHostList(list, hosts, property, buttonText, emptyText) {
     list.replaceChildren();
-
     if (!hosts.length) {
       const item = document.createElement("li");
       item.className = "empty";
@@ -71,19 +72,25 @@
 
   function render() {
     enableAll.checked = settings.allZendeskInstances;
+    scopeDescription.textContent = settings.allZendeskInstances
+      ? "Enabled by default. Exclude individual sites below."
+      : "Only explicitly enabled sites are active.";
+    for (const button of actionButtons) {
+      button.classList.toggle("selected", button.dataset.action === selectedAction);
+    }
     renderHostList(
       enabledList,
       settings.enabledHosts,
       "enabledHosts",
       "Remove",
-      "No explicitly enabled instances."
+      "No enabled sites."
     );
     renderHostList(
       disabledList,
       settings.disabledHosts,
       "disabledHosts",
       "Restore",
-      "No excluded instances."
+      "No excluded sites."
     );
   }
 
@@ -93,26 +100,22 @@
     render();
   }
 
-  enableAll.addEventListener("change", async () => {
-    settings.allZendeskInstances = enableAll.checked;
-    await saveSettings();
-  });
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const host = hostInput.value
+  function normalizeHost(value) {
+    return value
       .trim()
       .toLowerCase()
       .replace(/^https?:\/\//, "")
       .replace(/\/.*$/, "");
+  }
 
+  async function saveHostSetting() {
+    const host = normalizeHost(hostInput.value);
     if (!ZENDESK_HOST_PATTERN.test(host)) {
-      showMessage("Enter a Zendesk subdomain such as acme.zendesk.com.", true);
+      showMessage("Enter a subdomain such as acme.zendesk.com.", true);
       return;
     }
 
-    if (actionInput.value === "enable") {
+    if (selectedAction === "enable") {
       settings.enabledHosts = uniqueHosts([...settings.enabledHosts, host]);
       settings.disabledHosts = settings.disabledHosts.filter((value) => value !== host);
     } else {
@@ -122,7 +125,27 @@
 
     await saveSettings();
     hostInput.value = "";
-    showMessage(actionInput.value === "enable" ? `${host} enabled.` : `${host} removed.`);
+    showMessage(selectedAction === "enable" ? `${host} enabled.` : `${host} excluded.`);
+  }
+
+  enableAll.addEventListener("change", async () => {
+    settings.allZendeskInstances = enableAll.checked;
+    await saveSettings();
+  });
+
+  for (const button of actionButtons) {
+    button.addEventListener("click", () => {
+      selectedAction = button.dataset.action;
+      render();
+    });
+  }
+
+  saveHost.addEventListener("click", saveHostSetting);
+  hostInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      saveHostSetting();
+    }
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {

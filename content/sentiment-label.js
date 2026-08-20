@@ -62,20 +62,63 @@
     return null;
   }
 
-  function hideAdjacentIcon(button) {
-    const iconContainer = button.previousElementSibling;
+  function captureIcon(element) {
+    return {
+      element,
+      hidden: element.hidden,
+      ariaHidden: element.getAttribute("aria-hidden"),
+      display: element.style.getPropertyValue("display"),
+      displayPriority: element.style.getPropertyPriority("display"),
+    };
+  }
+
+  function findFaceIcons(button, labelNode) {
+    const icons = new Set();
+    const adjacent = button.previousElementSibling;
+    const labelElement = labelNode?.parentElement;
+    const divider = button.parentElement?.querySelector(
+      '[data-test-id="sentiment-menu-divider"]'
+    );
+    const semanticIcon = divider?.nextElementSibling;
+
     if (
-      !iconContainer ||
-      !(iconContainer.matches("svg") || iconContainer.querySelector("svg"))
+      semanticIcon &&
+      semanticIcon.nextElementSibling === button &&
+      (semanticIcon.matches("svg, [role='img'], img") ||
+        semanticIcon.querySelector("svg, [role='img'], img"))
     ) {
-      return null;
+      icons.add(semanticIcon);
     }
 
-    return {
-      element: iconContainer,
-      hidden: iconContainer.hidden,
-      ariaHidden: iconContainer.getAttribute("aria-hidden"),
-    };
+    if (
+      adjacent &&
+      !adjacent.textContent.trim() &&
+      (adjacent.matches("svg, [role='img'], img") ||
+        adjacent.querySelector("svg, [role='img'], img"))
+    ) {
+      icons.add(adjacent);
+    }
+
+    for (const icon of button.querySelectorAll("svg, [role='img'], img")) {
+      if (
+        !labelElement ||
+        icon.compareDocumentPosition(labelElement) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ) {
+        icons.add(icon);
+      }
+    }
+
+    return [...icons];
+  }
+
+  function hideIcons(icons) {
+    for (const icon of icons) {
+      if (!icon.element.isConnected) continue;
+      icon.element.hidden = true;
+      icon.element.setAttribute("aria-hidden", "true");
+      icon.element.style.setProperty("display", "none", "important");
+    }
   }
 
   function applyToButton(button) {
@@ -86,7 +129,7 @@
         labelNode: null,
         originalLabel: null,
         originalAriaLabel: button.getAttribute("aria-label"),
-        icon: hideAdjacentIcon(button),
+        icons: [],
       };
       modifiedButtons.set(button, modified);
     }
@@ -95,17 +138,15 @@
       modified.labelNode = findLabelTextNode(button);
       modified.originalLabel = modified.labelNode?.nodeValue ?? null;
     }
-    if (!modified.icon?.element.isConnected) {
-      modified.icon = hideAdjacentIcon(button);
+    for (const icon of findFaceIcons(button, modified.labelNode)) {
+      if (!modified.icons.some((savedIcon) => savedIcon.element === icon)) {
+        modified.icons.push(captureIcon(icon));
+      }
     }
 
     if (modified.labelNode) modified.labelNode.nodeValue = SENTIMENT_LABEL;
     button.setAttribute("aria-label", SENTIMENT_LABEL);
-
-    if (modified.icon?.element.isConnected) {
-      modified.icon.element.hidden = true;
-      modified.icon.element.setAttribute("aria-hidden", "true");
-    }
+    hideIcons(modified.icons);
   }
 
   function restoreAll() {
@@ -117,12 +158,22 @@
         if (modified.originalAriaLabel === null) button.removeAttribute("aria-label");
         else button.setAttribute("aria-label", modified.originalAriaLabel);
       }
-      if (modified.icon?.element.isConnected) {
-        modified.icon.element.hidden = modified.icon.hidden;
-        if (modified.icon.ariaHidden === null) {
-          modified.icon.element.removeAttribute("aria-hidden");
+      for (const icon of modified.icons) {
+        if (!icon.element.isConnected) continue;
+        icon.element.hidden = icon.hidden;
+        if (icon.ariaHidden === null) {
+          icon.element.removeAttribute("aria-hidden");
         } else {
-          modified.icon.element.setAttribute("aria-hidden", modified.icon.ariaHidden);
+          icon.element.setAttribute("aria-hidden", icon.ariaHidden);
+        }
+        if (icon.display) {
+          icon.element.style.setProperty(
+            "display",
+            icon.display,
+            icon.displayPriority
+          );
+        } else {
+          icon.element.style.removeProperty("display");
         }
       }
     }

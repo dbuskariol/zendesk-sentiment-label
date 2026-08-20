@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Zendesk Sentiment Label",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Keeps Zendesk ticket sentiment controls consistent.",
-  "options_ui": {
-    "page": "options/options.html",
-    "open_in_tab": true
+  "action": {
+    "default_title": "Zendesk Sentiment Label",
+    "default_popup": "popup/popup.html"
   },
   "permissions": [
     "storage"
