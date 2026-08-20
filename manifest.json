@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Zendesk Sentiment Label",
+  "version": "1.0.0",
+  "description": "Keeps Zendesk ticket sentiment controls consistent.",
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*.zendesk.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.zendesk.com/*"
+      ],
+      "js": [
+        "content/sentiment-label.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

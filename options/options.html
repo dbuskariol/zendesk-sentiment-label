@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Zendesk Sentiment Label - Options</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Zendesk Sentiment Label</h1>
+      <p class="intro">
+        On enabled ticket pages, Zendesk's sentiment dropdown continues to work
+        normally while its face icon is hidden and its label reads
+        <strong>Sentiment</strong>.
+      </p>
+
+      <section>
+        <label class="toggle">
+          <input id="enable-all" type="checkbox" />
+          <span>Enable on all Zendesk instances</span>
+        </label>
+        <p class="hint">
+          This is enabled by default. Remove individual instances below, or turn
+          this setting off to enable only specified subdomains.
+        </p>
+      </section>
+
+      <section>
+        <h2>Manage Zendesk instances</h2>
+        <form id="instance-form">
+          <label for="instance-host">Zendesk subdomain</label>
+          <div class="form-row">
+            <input
+              id="instance-host"
+              type="text"
+              inputmode="url"
+              placeholder="acme.zendesk.com"
+              autocomplete="off"
+              required
+            />
+            <select id="instance-action" aria-label="Instance action">
+              <option value="enable">Enable</option>
+              <option value="disable">Remove</option>
+            </select>
+            <button type="submit">Save</button>
+          </div>
+          <p id="form-message" class="message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section>
+        <h2>Explicitly enabled</h2>
+        <p class="hint">Used when all instances are not enabled.</p>
+        <ul id="enabled-hosts" class="host-list"></ul>
+      </section>
+
+      <section>
+        <h2>Excluded from the default</h2>
+        <p class="hint">Used when all instances are enabled.</p>
+        <ul id="disabled-hosts" class="host-list"></ul>
+      </section>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>
